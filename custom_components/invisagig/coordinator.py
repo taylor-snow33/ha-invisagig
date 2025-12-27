@@ -144,6 +144,19 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
                     mcc = plmn[:3]
                     mnc = plmn[3:]
 
+        # Fallback: Infer from Carrier Name (Best Effort)
+        if not mcc or not mnc:
+             carrier = data.get("activeSim", {}).get("carrier", "").lower()
+             if "verizon" in carrier:
+                 mcc = "311"
+                 mnc = "480"
+             elif "t-mobile" in carrier:
+                 mcc = "310"
+                 mnc = "260"
+             elif "at&t" in carrier:
+                 mcc = "310"
+                 mnc = "410"
+
         # Persist extracted values back to data for sensors to pick up
         if mcc and mnc:
              if "lteCell" not in data:
