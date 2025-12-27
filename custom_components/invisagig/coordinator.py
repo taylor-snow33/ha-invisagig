@@ -43,51 +43,15 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=60),  # Will be updated from config
         )
         self.api = client
-        self.tower_data = None
-        self.tower_lookup_status = "unknown"
-        self._tower_cache = {} # Simple memory cache for now, could persist if needed but usually transient is ok? 
-                               # Requirement says "Cache successful tower results in ... Storage". 
-                               # I should ideally use Store, but for simplicity of custom component often memory + maybe Store is safer.
-                               # Let's start with in-memory but if reloads happen it clears. 
-                               # Wait, requirement says "Cache successful tower results in homeassistant.helpers.storage.Store with TTL 24 hours."
-                               # I should use Store.
 
-        # For persistent storage
-        from homeassistant.helpers.storage import Store
-        self._store = Store(hass, 1, f"{DOMAIN}_tower_cache_{self.config_entry.entry_id}")
-        self._cache_loaded = False
-
-    async def _async_load_cache(self):
-        """Load cache from storage."""
-        if self._cache_loaded:
-            return
-        
-        try:
-            data = await self._store.async_load()
-            if data:
-                # Convert stored timestamp strings back to datetime objects if needed
-                # But simple dict storage is likely fine if we manage serialisation
-                self._tower_cache = data
-        except Exception:
-            _LOGGER.warning("Failed to load tower cache", exc_info=True)
-            self._tower_cache = {}
-        
-        self._cache_loaded = True
-
-    async def _async_save_cache(self):
-        """Save cache to storage."""
-        await self._store.async_save(self._tower_cache)
 
     async def _async_update_data(self):
         """Update data via library."""
         try:
             data = await self.api.async_get_data()
             
-            # Enforce minimum scan interval from coordinator level just in case, 
-            # though usually it's set in init/options.
-            
-            # Tower Lookup Logic
-            await self._async_handle_tower_lookup(data)
+            # Extract MCC/MNC for sensors
+            self._extract_mcc_mnc(data)
             
             return data
             
@@ -96,29 +60,11 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
         except InvisaGigApiClientError as exception:
             raise UpdateFailed(exception) from exception
 
-    async def _async_handle_tower_lookup(self, data: dict):
-        """Handle tower lookup logic."""
-        # 0. CHECK FOR MANUAL TOWER COORDS
-        conf_lat = self.config_entry.options.get("tower_lat", 0.0)
-        conf_lon = self.config_entry.options.get("tower_lon", 0.0)
-        
-        if conf_lat != 0.0 or conf_lon != 0.0:
-            self.tower_data = {"lat": float(conf_lat), "lon": float(conf_lon)}
-            self.tower_lookup_status = "manual_override"
-            return
-
-        # 1. GATHER DATA
+    def _extract_mcc_mnc(self, data: dict):
+        """Extract MCC/MNC from various sources in data."""
         lte_cell = data.get("lteCell", {})
-        if not lte_cell:
-            self.tower_lookup_status = "no_signal"
-            return
-            
-        cid = lte_cell.get("lteCid")
-        lac = lte_cell.get("lteLac")
         
-        # We need MCC/MNC
-        # Try to find in data (not in sample, but maybe somewhere?)
-        # Fallback to Options/Config
+        # We need MCC/MNC for sensors
         mcc = self.config_entry.options.get(CONF_MCC)
         mnc = self.config_entry.options.get(CONF_MNC)
 
@@ -174,73 +120,3 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
                  data["lteCell"]["mcc"] = str(mcc)
              if not data["lteCell"].get("mnc"):
                  data["lteCell"]["mnc"] = str(mnc)
-
-        if not cid or not lac:
-             self.tower_lookup_status = "missing_cid_lac"
-             return
-            
-        if not mcc or not mnc:
-             self.tower_lookup_status = "missing_mcc_mnc"
-             return
-
-        # Check Token
-        if not self.api._opencellid_token:
-             self.tower_lookup_status = "missing_token"
-             return
-
-        # Check Cache
-        cache_key = f"{mcc}-{mnc}-{lac}-{cid}"
-        cached_entry = self._tower_cache.get(cache_key)
-        
-        should_refresh = True
-        if cached_entry:
-            last_fetch = datetime.fromtimestamp(cached_entry.get("timestamp", 0))
-            if datetime.now() - last_fetch < TOWER_CACHE_TTL:
-                self.tower_data = cached_entry["data"]
-                self.tower_lookup_status = "resolved_cached"
-                should_refresh = False
-        
-        if should_refresh:
-            _LOGGER.debug("Fetching tower data for %s", cache_key)
-            tower_info = await self.api.async_get_tower_data(mcc, mnc, lac, cid)
-            
-            # FALLBACK: Smart Sector Scan
-            # If the specific cell is not found, try other sectors on the same eNodeB.
-            # Tower 344442 was found on Sector 12 (CID 88177164).
-            if not tower_info:
-                enodeb_id = lte_cell.get("lteTid")
-                if not enodeb_id and cid:
-                    enodeb_id = cid // 256
-                
-                if enodeb_id:
-                     base_id = enodeb_id * 256
-                     # Common sectors: 1-3 (700/850), 11-13 (AWS/PCS), 21-23 (PCS/AWS)
-                     # We scan them in order of likelihood to find *any* mapped sector for this tower.
-                     sectors_to_try = [1, 2, 3, 11, 12, 13, 21, 22, 23]
-                     
-                     for sector in sectors_to_try:
-                         fallback_cid = base_id + sector
-                         
-                         # Don't re-check the original CID if it was already checked
-                         if fallback_cid == cid:
-                             continue
-                             
-                         _LOGGER.debug("Primary CID lookup failed. Trying fallback Sector %s: %s", sector, fallback_cid)
-                         tower_info = await self.api.async_get_tower_data(mcc, mnc, lac, fallback_cid)
-                         
-                         if tower_info:
-                             _LOGGER.info("Resolved tower location using fallback Sector %s (CID %s)", sector, fallback_cid)
-                             break # Stop once we find the tower location
-
-            if tower_info:
-                entry = {
-                    "timestamp": datetime.now().timestamp(),
-                    "data": tower_info
-                }
-                self._tower_cache[cache_key] = entry
-                self.tower_data = tower_info
-                self.tower_lookup_status = "resolved_api"
-                await self._async_save_cache()
-            else:
-                self.tower_lookup_status = "lookup_failed"
-                self.tower_data = None

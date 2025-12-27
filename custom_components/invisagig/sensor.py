@@ -135,9 +135,6 @@ def derive_connection_mode(data):
     
     return "UNKNOWN"
 
-def get_tower_lookup_status(coordinator):
-    return coordinator.tower_lookup_status
-
 
 SENSOR_TYPES: tuple[InvisaGigSensorEntityDescription, ...] = (
     # Device Group
@@ -350,13 +347,6 @@ async def async_setup_entry(
     for sim in ["SIM1", "SIM2"]:
          entities.extend(_create_data_sensors(coordinator, sim))
 
-    # Add Tower Lookup Status
-    entities.append(InvisaGigTowerStatusSensor(coordinator))
-    
-    # Add Tower Distance/Direction Sensors
-    entities.append(InvisaGigTowerDistanceSensor(coordinator))
-    entities.append(InvisaGigTowerDirectionSensor(coordinator))
-    
     # Add Raw JSON if enabled
     if entry.options.get(CONF_INCLUDE_RAW_JSON):
         entities.append(InvisaGigRawJsonSensor(coordinator))
@@ -466,22 +456,6 @@ class InvisaGigSensor(CoordinatorEntity, SensorEntity):
             return self.entity_description.value_fn(self.coordinator.data)
         return None
 
-class InvisaGigTowerStatusSensor(CoordinatorEntity, SensorEntity):
-    """Sensor for Tower Lookup Status."""
-    
-    def __init__(self, coordinator):
-         super().__init__(coordinator)
-         self._attr_unique_id = f"{coordinator.api._host}_tower_status"
-         self._attr_name = "Tower Lookup Status"
-         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-         self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.api._host)},
-        }
-
-    @property
-    def native_value(self):
-        return self.coordinator.tower_lookup_status
-
 class InvisaGigRawJsonSensor(CoordinatorEntity, SensorEntity):
     """Sensor for Raw JSON."""
      
@@ -564,119 +538,3 @@ class InvisaGigSignalHealthSensor(CoordinatorEntity, SensorEntity):
         if val <= min_val: return 0.0
         if val >= max_val: return 1.0
         return (val - min_val) / (max_val - min_val)
-
-
-class InvisaGigTowerDistanceSensor(CoordinatorEntity, SensorEntity):
-    """Sensor for distance to tower."""
-
-    def __init__(self, coordinator):
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.api._host}_tower_distance"
-        self._attr_name = "Tower Distance"
-        self._attr_device_class = SensorDeviceClass.DISTANCE
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_icon = "mdi:map-marker-distance"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.api._host)},
-        }
-
-    @property
-    def native_unit_of_measurement(self):
-        # Respect User's System Unit setting if possible, or just default to KM/Miles based on system?
-        # Device Class DISTANCE usually handles conversion if we provide native value in KM
-        # Let's provide in KM and set unit to KM. HA handles display conversion? 
-        # Actually correct way is to check hass.config.units, but simple path: use KM.
-        return UnitOfLength.KILOMETERS
-
-    @property
-    def native_value(self):
-        if not self.coordinator.tower_data:
-            return None
-            
-        tower_lat = self.coordinator.tower_data.get("lat")
-        tower_lon = self.coordinator.tower_data.get("lon")
-        
-        if not tower_lat or not tower_lon:
-            return None
-
-        # Check Home Location
-        if self.hass.config.latitude is None or self.hass.config.longitude is None:
-            return None
-            
-        return round(self._calculate_distance(
-            self.hass.config.latitude, 
-            self.hass.config.longitude, 
-            tower_lat, 
-            tower_lon
-        ), 2)
-
-    def _calculate_distance(self, lat1, lon1, lat2, lon2):
-        from math import sin, cos, sqrt, atan2, radians
-        R = 6371.0 # km
-        d_lat = radians(lat2 - lat1)
-        d_lon = radians(lon2 - lon1)
-        a = sin(d_lat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lat/2)**2
-        # My previous math in device_tracker might have had a typo in sin(d_lon/2) variable?
-        # Let's use robust formula:
-        a = sin(d_lat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lon / 2)**2
-        c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return R * c
-
-
-class InvisaGigTowerDirectionSensor(CoordinatorEntity, SensorEntity):
-    """Sensor for direction/bearing to tower."""
-
-    def __init__(self, coordinator):
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.api._host}_tower_direction"
-        self._attr_name = "Tower Direction"
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = "°"
-        self._attr_icon = "mdi:compass"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.api._host)},
-        }
-
-    @property
-    def native_value(self):
-        if not self.coordinator.tower_data:
-            return None
-            
-        tower_lat = self.coordinator.tower_data.get("lat")
-        tower_lon = self.coordinator.tower_data.get("lon")
-        
-        if not tower_lat or not tower_lon:
-            return None
-
-        if self.hass.config.latitude is None or self.hass.config.longitude is None:
-            return None
-            
-        return round(self._calculate_bearing(
-            self.hass.config.latitude, 
-            self.hass.config.longitude, 
-            tower_lat, 
-            tower_lon
-        ), 0)
-        
-    @property
-    def extra_state_attributes(self):
-        val = self.native_value
-        if val is not None:
-            return {"cardinal": self._get_cardinal_direction(val)}
-        return {}
-
-    def _calculate_bearing(self, lat1, lon1, lat2, lon2):
-        from math import sin, cos, atan2, degrees, radians
-        d_lon = radians(lon2 - lon1)
-        x = cos(radians(lat2)) * sin(d_lon)
-        y = cos(radians(lat1)) * sin(radians(lat2)) - (sin(radians(lat1)) * cos(radians(lat2)) * cos(d_lon))
-        initial_bearing = atan2(x, y)
-        initial_bearing = degrees(initial_bearing)
-        compass_bearing = (initial_bearing + 360) % 360
-        return compass_bearing
-
-    def _get_cardinal_direction(self, bearing):
-        dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
-        ix = round(bearing / (360. / 16))
-        return dirs[ix % 16]

@@ -1,13 +1,10 @@
 """Constants for the InvisaGig integration."""
 
 DOMAIN = "invisagig"
-CONF_OPENCELLID_TOKEN = "opencellid_token"
 CONF_USE_SSL = "use_ssl"
 CONF_INCLUDE_RAW_JSON = "include_raw_json"
 CONF_MCC = "mcc"
 CONF_MNC = "mnc"
-CONF_TOWER_LAT = "tower_lat"
-CONF_TOWER_LON = "tower_lon"
 CONF_PREFERRED_MODE = "preferred_mode"
 
 DEFAULT_SCAN_INTERVAL = 60

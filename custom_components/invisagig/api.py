@@ -37,7 +37,6 @@ class InvisaGigApiClient:
         port: int,
         session: aiohttp.ClientSession,
         use_ssl: bool = False,
-        opencellid_token: str | None = None,
     ) -> None:
         """Sample API Client."""
         self._host = host
@@ -45,7 +44,6 @@ class InvisaGigApiClient:
         self._session = session
         self._use_ssl = use_ssl
         self._protocol = "https" if use_ssl else "http"
-        self._opencellid_token = opencellid_token
 
     async def async_get_data(self) -> dict[str, Any]:
         """Get data from the API."""
@@ -110,43 +108,3 @@ class InvisaGigApiClient:
                 return None
             return data.strip()
         return data
-
-    async def async_get_tower_data(
-        self, mcc: int, mnc: int, lac: int, cid: int, radio: str = "lte"
-    ) -> dict[str, Any] | None:
-        """Get tower data from OpenCelliD."""
-        if not self._opencellid_token:
-            return None
-
-        url = "https://opencellid.org/cell/get"
-        params = {
-            "key": self._opencellid_token,
-            "mcc": mcc,
-            "mnc": mnc,
-            "lac": lac,
-            "cellid": cid,
-            "radio": radio,
-            "format": "json",
-        }
-
-        try:
-            async with async_timeout.timeout(TIMEOUT):
-                response = await self._session.get(url, params=params)
-                # OpenCelliD might return 200 with error in body or 400
-                if response.status != 200:
-                    _LOGGER.warning(
-                        "OpenCelliD lookup failed: %s", response.status
-                    )
-                    return None
-                
-                data = await response.json()
-                # Check for API errors in response if any (OpenCelliD specific)
-                if "error" in data:
-                     _LOGGER.warning("OpenCelliD error: %s", data["error"])
-                     return None
-                
-                return data
-
-        except Exception as exception:
-             _LOGGER.warning("OpenCelliD lookup exception: %s", exception)
-             return None

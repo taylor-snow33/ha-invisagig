@@ -6,8 +6,7 @@
                     "host": "Host",
                     "port": "Port",
                     "use_ssl": "Use SSL",
-                    "name": "Name",
-                    "opencellid_token": "OpenCelliD Token (Optional)"
+                    "name": "Name"
                 },
                 "description": "Enter the IP/hostname of your InvisaGig (LAN or Tailscale). We will fetch /telemetry/info.json to verify connectivity."
             }
@@ -26,7 +25,6 @@
             "init": {
                 "data": {
                     "scan_interval": "Scan Interval (seconds)",
-                    "opencellid_token": "OpenCelliD Token (Optional)",
                     "include_raw_json": "Include Raw JSON Sensor",
                     "mcc": "MCC (Override)",
                     "mnc": "MNC (Override)",

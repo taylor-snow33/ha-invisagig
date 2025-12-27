@@ -6,10 +6,9 @@
                     "host": "Host",
                     "port": "Port",
                     "use_ssl": "Use SSL",
-                    "name": "Name",
-                    "opencellid_token": "OpenCelliD Token (Optional)"
+                    "name": "Name"
                 },
-                "description": "Enter the IP/hostname of your InvisaGig (LAN or Tailscale). We will fetch /telemetry/info.json to verify connectivity."
+                "description": "Enter the IP/hostname of your InvisaGig (LAN or Tailscale). We will fetch /telemetry/info.json to verify connectivity.{discovery_note}"
             }
         },
         "error": {
@@ -28,9 +27,7 @@
                     "include_raw_json": "Include Raw JSON Sensor",
                     "preferred_mode": "Preferred Network Mode",
                     "mcc": "Override MCC (e.g. 311 for Verizon)",
-                    "mnc": "Override MNC (e.g. 480 for Verizon)",
-                    "tower_lat": "Tower Latitude (Manual Override)",
-                    "tower_lon": "Tower Longitude (Manual Override)"
+                    "mnc": "Override MNC (e.g. 480 for Verizon)"
                 }
             }
         }

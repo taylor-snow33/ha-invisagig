@@ -12,7 +12,6 @@ from .api import InvisaGigApiClient
 from .coordinator import InvisaGigDataUpdateCoordinator
 from .const import (
     DOMAIN,
-    CONF_OPENCELLID_TOKEN,
     CONF_USE_SSL,
     DEFAULT_PORT_HTTP,
     DEFAULT_USE_SSL,
@@ -20,7 +19,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.DEVICE_TRACKER, Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -31,18 +30,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port = entry.data.get(CONF_PORT, DEFAULT_PORT_HTTP)
     use_ssl = entry.data.get(CONF_USE_SSL, DEFAULT_USE_SSL)
     
-    # Check for options with fallback to data
-    opencellid_token = entry.options.get(
-        CONF_OPENCELLID_TOKEN, entry.data.get(CONF_OPENCELLID_TOKEN)
-    )
-
     session = async_get_clientsession(hass)
     client = InvisaGigApiClient(
         host=host,
         port=port,
         session=session,
         use_ssl=use_ssl,
-        opencellid_token=opencellid_token,
     )
 
     coordinator = InvisaGigDataUpdateCoordinator(hass, client)

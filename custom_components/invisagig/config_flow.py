@@ -17,14 +17,11 @@ import homeassistant.helpers.config_validation as cv
 from .api import InvisaGigApiClient
 from .const import (
     DOMAIN,
-    CONF_OPENCELLID_TOKEN,
     CONF_USE_SSL,
     CONF_INCLUDE_RAW_JSON,
     CONF_PREFERRED_MODE,
     CONF_MCC,
     CONF_MNC,
-    CONF_TOWER_LAT,
-    CONF_TOWER_LON,
     DEFAULT_NAME,
     DEFAULT_HOST,
     DEFAULT_PORT_HTTP,
@@ -39,6 +36,7 @@ from .const import (
     MODE_LTE,
     MODE_5G_NSA,
     MODE_5G_SA,
+    TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,7 +54,6 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         port=port,
         session=session,
         use_ssl=use_ssl,
-        opencellid_token=data.get(CONF_OPENCELLID_TOKEN),
     )
 
     try:
@@ -74,7 +71,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     return {"title": data.get(CONF_NAME, DEFAULT_NAME)}
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class InvisaGigConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for InvisaGig."""
 
     VERSION = 1
@@ -84,46 +81,76 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
+        description_placeholders = {"discovery_note": ""}
+        
         if user_input is not None:
-            try:
+             try:
                 info = await validate_input(self.hass, user_input)
-            except CannotConnect:
+                return self.async_create_entry(title=info["title"], data=user_input)
+             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except InvalidAuth:
+             except InvalidAuth:
                 errors["base"] = "invalid_auth"
-            except Exception:  # pylint: disable=broad-except
+             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            else:
-                return self.async_create_entry(title=info["title"], data=user_input)
+
+        # Auto-Discovery Logic (Check Default IP)
+        # Only check if no user input and no errors (first run)
+        if user_input is None:
+             try:
+                # optimistic check
+                # We use a short timeout locally just to check presence
+                session = async_get_clientsession(self.hass)
+                client = InvisaGigApiClient(
+                    host=DEFAULT_HOST,
+                    port=DEFAULT_PORT_HTTP,
+                    session=session,
+                    use_ssl=DEFAULT_USE_SSL,
+                )
+                # We assume if we can get data, it's there. 
+                # Use a very short timeout for this probe
+                import async_timeout
+                async with async_timeout.timeout(2):
+                     await client.async_get_data()
+                
+                # If we get here, we found it!
+                description_placeholders = {
+                    "ip": DEFAULT_HOST,
+                    "discovery_note": f"\n\n**Success!** We detected a device at {DEFAULT_HOST}."
+                }
+                
+                # Pre-fill title placeholders if any
+                self.context["title_placeholders"] = {"name": DEFAULT_NAME}
+
+             except Exception:
+                # Not found or timeout, just show standard form
+                pass
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HOST, default=DEFAULT_HOST): str,
-                    vol.Optional(CONF_PORT, default=DEFAULT_PORT_HTTP): int,
-                    # vol.Optional(CONF_USE_SSL, default=DEFAULT_USE_SSL): bool, # Keep simple for now? User asked for it. 
-                    vol.Optional(CONF_USE_SSL, default=DEFAULT_USE_SSL): bool,
                     vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-                    vol.Optional(CONF_OPENCELLID_TOKEN): str,
+                    vol.Optional(CONF_USE_SSL, default=DEFAULT_USE_SSL): bool,
                 }
             ),
             errors=errors,
+            description_placeholders=description_placeholders,
         )
 
     @staticmethod
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        """Create the options flow."""
-        return OptionsFlowHandler(config_entry)
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return InvisaGigOptionsFlowHandler(config_entry)
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Options flow for InvisaGig."""
+class InvisaGigOptionsFlowHandler(OptionsFlow):
+    """Handle options."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
 
@@ -138,22 +165,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                        ),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL)),
-                    vol.Optional(
-                        CONF_OPENCELLID_TOKEN,
-                        default=self.config_entry.options.get(CONF_OPENCELLID_TOKEN, self.config_entry.data.get(CONF_OPENCELLID_TOKEN, "")),
-                    ): str,
                     vol.Optional(
                         CONF_INCLUDE_RAW_JSON,
-                        default=self.config_entry.options.get(
-                            CONF_INCLUDE_RAW_JSON, DEFAULT_INCLUDE_RAW_JSON
-                        ),
+                        default=self.config_entry.options.get(CONF_INCLUDE_RAW_JSON, DEFAULT_INCLUDE_RAW_JSON)
                     ): bool,
+                    vol.Optional(
+                        CONF_PREFERRED_MODE,
+                        default=self.config_entry.options.get(CONF_PREFERRED_MODE, DEFAULT_PREFERRED_MODE),
+                    ): vol.In([MODE_NONE, MODE_LTE, MODE_5G_NSA, MODE_5G_SA]),
                     vol.Optional(
                          CONF_MCC,
                          default=self.config_entry.options.get(CONF_MCC, 0)
@@ -162,18 +181,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                          CONF_MNC,
                          default=self.config_entry.options.get(CONF_MNC, 0)
                     ): int,
-                    vol.Optional(
-                        CONF_TOWER_LAT,
-                        default=self.config_entry.options.get(CONF_TOWER_LAT, 0.0)
-                    ): float,
-                     vol.Optional(
-                        CONF_TOWER_LON,
-                        default=self.config_entry.options.get(CONF_TOWER_LON, 0.0)
-                    ): float,
-                    vol.Optional(
-                        CONF_PREFERRED_MODE,
-                        default=self.config_entry.options.get(CONF_PREFERRED_MODE, DEFAULT_PREFERRED_MODE),
-                    ): vol.In([MODE_NONE, MODE_LTE, MODE_5G_NSA, MODE_5G_SA]),
                 }
             ),
         )
