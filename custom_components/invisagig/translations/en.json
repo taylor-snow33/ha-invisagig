@@ -28,8 +28,8 @@
                     "scan_interval": "Scan Interval (seconds)",
                     "opencellid_token": "OpenCelliD Token (Optional)",
                     "include_raw_json": "Include Raw JSON Sensor",
-                    "mcc": "MCC (Override)",
-                    "mnc": "MNC (Override)",
+                    "mcc": "MCC Override (Optional - Verizon: 311, T-Mobile: 310, AT&T: 310)",
+                    "mnc": "MNC Override (Optional - Verizon: 480, T-Mobile: 260, AT&T: 410)",
                     "preferred_mode": "Preferred Network Mode"
                 }
             }
