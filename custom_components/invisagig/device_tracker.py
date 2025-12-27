@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.const import LENGTH_KILOMETERS, LENGTH_MILES
+from homeassistant.const import UnitOfLength
 
 from .const import DOMAIN
 from .coordinator import InvisaGigDataUpdateCoordinator
