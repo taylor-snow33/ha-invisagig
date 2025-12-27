@@ -1,0 +1,28 @@
+"""Constants for the InvisaGig integration."""
+
+DOMAIN = "invisagig"
+CONF_OPENCELLID_TOKEN = "opencellid_token"
+CONF_USE_SSL = "use_ssl"
+CONF_INCLUDE_RAW_JSON = "include_raw_json"
+CONF_MCC = "mcc"
+CONF_MNC = "mnc"
+CONF_PREFERRED_MODE = "preferred_mode"
+
+DEFAULT_SCAN_INTERVAL = 60
+MIN_SCAN_INTERVAL = 60
+MAX_SCAN_INTERVAL = 600
+
+DEFAULT_NAME = "InvisaGig"
+DEFAULT_HOST = "192.168.225.1"
+DEFAULT_PORT_HTTP = 80
+DEFAULT_PORT_HTTPS = 443
+DEFAULT_USE_SSL = False
+DEFAULT_INCLUDE_RAW_JSON = False
+DEFAULT_PREFERRED_MODE = "none"
+
+MODE_LTE = "LTE"
+MODE_5G_NSA = "5G_NSA"
+MODE_5G_SA = "5G_SA"
+MODE_NONE = "none"
+
+TIMEOUT = 10

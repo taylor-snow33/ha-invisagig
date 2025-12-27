@@ -1,0 +1,38 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "port": "Port",
+                    "use_ssl": "Use SSL",
+                    "name": "Name",
+                    "opencellid_token": "OpenCelliD Token (Optional)"
+                },
+                "description": "Enter the IP/hostname of your InvisaGig (LAN or Tailscale). We will fetch /telemetry/info.json to verify connectivity."
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "abort": {
+            "already_configured": "Device is already configured"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "scan_interval": "Scan Interval (seconds)",
+                    "opencellid_token": "OpenCelliD Token (Optional)",
+                    "include_raw_json": "Include Raw JSON Sensor",
+                    "mcc": "MCC (Override)",
+                    "mnc": "MNC (Override)",
+                    "preferred_mode": "Preferred Network Mode"
+                }
+            }
+        }
+    }
+}
