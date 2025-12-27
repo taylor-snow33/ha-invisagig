@@ -147,7 +147,7 @@ class InvisaGigConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return InvisaGigOptionsFlowHandler(config_entry)
 
 
-class InvisaGigOptionsFlowHandler(OptionsFlow):
+class InvisaGigOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
