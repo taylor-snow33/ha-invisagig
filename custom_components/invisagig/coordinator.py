@@ -133,6 +133,26 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
                     if len(plmn) >= 5:
                         mcc = plmn[:3]
                         mnc = plmn[3:]
+        
+        # Check activeSim for PLMN if still missing
+        if not mcc or not mnc:
+             sim = data.get("activeSim", {})
+             plmn = sim.get("plmn")
+             if plmn:
+                plmn = str(plmn)
+                if len(plmn) >= 5:
+                    mcc = plmn[:3]
+                    mnc = plmn[3:]
+
+        # Persist extracted values back to data for sensors to pick up
+        if mcc and mnc:
+             if "lteCell" not in data:
+                 data["lteCell"] = {}
+             # We write them as 'mcc' and 'mnc' or update existing if None
+             if not data["lteCell"].get("mcc"):
+                 data["lteCell"]["mcc"] = str(mcc)
+             if not data["lteCell"].get("mnc"):
+                 data["lteCell"]["mnc"] = str(mnc)
 
         if not cid or not lac:
              self.tower_lookup_status = "missing_cid_lac"
