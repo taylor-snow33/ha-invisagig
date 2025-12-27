@@ -1,0 +1,98 @@
+# Task Checklist: InvisaGig Home Assistant Integration
+
+- [x] **Project Setup** <!-- id: 0 -->
+    - [x] Create directory structure (`custom_components/invisagig`, `tests`) <!-- id: 1 -->
+    - [x] Create `manifest.json` <!-- id: 2 -->
+    - [x] Create `hacs.json` <!-- id: 3 -->
+    - [x] Create `pyproject.toml` (ruff, pytest) <!-- id: 4 -->
+    - [x] Create `README.md`, `LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` <!-- id: 5 -->
+- [x] **Core Logic Implementation** <!-- id: 6 -->
+    - [x] Create `const.py` with constants (default scan interval, domain, etc.) <!-- id: 7 -->
+    - [x] Implement `api.py` (InvisaGigApiClient) <!-- id: 8 -->
+        - [x] JSON fetching and sanitization logic <!-- id: 9 -->
+        - [x] Model validation <!-- id: 10 -->
+        - [x] OpenCelliD lookup logic <!-- id: 11 -->
+    - [x] Implement `coordinator.py` (InvisaGigDataUpdateCoordinator) <!-- id: 12 -->
+        - [x] Data fetching interval (60s min) <!-- id: 13 -->
+        - [x] OpenCelliD caching strategy <!-- id: 14 -->
+- [x] **Configuration & Options** <!-- id: 15 -->
+    - [x] Implement `config_flow.py` <!-- id: 16 -->
+        - [x] User Step (Host/IP, Optional Token) <!-- id: 17 -->
+        - [x] Validation (Connect & Verify Model) <!-- id: 18 -->
+        - [x] Options Flow (Scan Interval, Token, Raw JSON, MCC/MNC) <!-- id: 19 -->
+- [x] **Entity Implementation** <!-- id: 20 -->
+    - [x] Implement `__init__.py` (Component Setup, Platform forwarding) <!-- id: 21 -->
+    - [x] Implement `sensor.py` <!-- id: 22 -->
+        - [x] Device Info sensors <!-- id: 23 -->
+        - [x] Time/Temp sensors <!-- id: 24 -->
+        - [x] Active Sim sensors <!-- id: 25 -->
+        - [x] Data Used sensors <!-- id: 26 -->
+        - [x] LTE/5G Cell sensors <!-- id: 27 -->
+        - [x] Carrier Aggregation sensors <!-- id: 28 -->
+        - [x] Tower Lookup Status sensor <!-- id: 29 -->
+    - [x] Implement `device_tracker.py` (Tower Map Entity) <!-- id: 30 -->
+- [x] **Localization & Strings** <!-- id: 31 -->
+    - [x] Create `translations/en.json` <!-- id: 32 -->
+    - [x] Create `translations/strings.json` <!-- id: 33 -->
+- [x] **Testing & Verification** <!-- id: 34 -->
+    - [x] Create tests for JSON sanitization <!-- id: 35 -->
+    - [x] Create tests for parsing logic <!-- id: 36 -->
+    - [x] Create tests for Config Flow <!-- id: 37 -->
+    - [x] Run `ruff` linting <!-- id: 38 -->
+    - [x] Verify against `hassfest` (if possible/simulated) <!-- id: 39 -->
+- [x] **Enhancements** <!-- id: 40 -->
+    - [x] **Connection Health Score** <!-- id: 41 -->
+        - [x] Add `SignalHealthSensor` logic to `sensor.py` <!-- id: 42 -->
+    - [x] **Network Mode Alerts** <!-- id: 43 -->
+        - [x] Update `const.py` with mode options <!-- id: 44 -->
+        - [x] Update `config_flow.py` to add "Preferred Mode" option <!-- id: 45 -->
+        - [x] Create `binary_sensor.py` for `NetworkModeDrift` <!-- id: 46 -->
+        - [x] Register `binary_sensor` platform in `__init__.py` <!-- id: 47 -->
+    - [x] **Localization** <!-- id: 48 -->
+        - [x] Update strings for new options and sensors <!-- id: 49 -->
+- [x] **Manual Verification** <!-- id: 50 -->
+    - [x] Create `debug_run.py` to simulate sensor updates <!-- id: 51 -->
+    - [x] Run `debug_run.py` and verify output <!-- id: 52 -->
+- [x] **Configuration Updates** <!-- id: 53 -->
+    - [x] Add `DEFAULT_HOST` to `const.py` <!-- id: 54 -->
+    - [x] Update `config_flow.py` to use `DEFAULT_HOST` <!-- id: 55 -->
+    - [x] Verify `debug_run.py` uses correct default <!-- id: 56 -->
+
+- [x] **GitHub Deployment** <!-- id: 57 -->
+    - [x] Create comprehensive Documentation
+    - [x] Add screenshots (Optional but recommended)
+    - [x] Document configuration options (Host, Scan Interval)
+    - [x] Document troubleshooting for "Unknown" sensors
+- [x] Publish to HACS (Custom Repo)
+    - [x] Ensure `hacs.json` is valid
+    - [x] Verify directory structure
+    - [x] Verify branding assets
+    - [x] Generate new SSH key <!-- id: 62 -->
+    - [x] Configure SSH client <!-- id: 63 -->
+    - [x] Add key to GitHub <!-- id: 64 -->
+- [x] **Bug Fixes** <!-- id: 65 -->
+    - [x] Fix `ImportError` for deprecated `LENGTH_KILOMETERS` <!-- id: 66 -->
+    - [x] Fix `missing_mcc_mnc` by parsing from telemetry <!-- id: 67 -->
+- [x] **Documentation & Branding** <!-- id: 68 -->
+    - [x] Add InvisaGig Icon to README <!-- id: 69 -->
+- [x] **Documentation & Branding** <!-- id: 68 -->
+    - [x] Add InvisaGig Icon to README <!-- id: 69 -->
+    - [x] Add Non-Affiliation Disclaimer <!-- id: 70 -->
+    - [x] Convert Icon to PNG for HA/HACS compatibility <!-- id: 71 -->
+- [x] **Sensor Expansion** <!-- id: 71 -->
+    - [x] Add `lte_lac` (Area Code) <!-- id: 72 -->
+    - [x] Add `lte_mcc` and `lte_mnc` sensors <!-- id: 73 -->
+    - [x] Add `lte_enodeb` (calculated) sensor <!-- id: 74 -->
+
+- [x] **Cleanup & Refactor (v1.0.5)** <!-- id: 75 -->
+    - [x] Remove Tower Location/Distance/Direction Sensors (Unreliable Data) <!-- id: 76 -->
+    - [x] Remove OpenCelliD API Integration <!-- id: 77 -->
+    - [x] Remove `device_tracker` platform <!-- id: 78 -->
+    - [x] Update Documentation (README, Walkthrough) <!-- id: 79 -->
+    - [x] **Auto Discovery**: Probe default IP (192.168.225.1) during config flow <!-- id: 80 -->
+    - [x] **Hotfix v1.0.6**: Resolve Config Flow NameError <!-- id: 81 -->
+    - [x] **Hotfix v1.0.7**: Fix missing 'callback' import <!-- id: 82 -->
+    - [x] Feature: Add "Visit Device" link to Device Information
+    - [x] Bump to 1.0.8
+    - [x] Fix Branding: Update `icon.png` and `logo.png` to high-res (500x500)
+    - [x] Prepare `brands_submission` folder for GitHub PR
