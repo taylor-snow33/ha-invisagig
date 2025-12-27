@@ -431,14 +431,23 @@ class InvisaGigSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{coordinator.api._host}_{description.key}"
         self._attr_has_entity_name = True
         
+        # Construct configuration URL
+        protocol = coordinator.api._protocol
+        port = coordinator.api._port
+        host = coordinator.api._host
+        
+        if (protocol == "http" and port == 80) or (protocol == "https" and port == 443):
+             config_url = f"{protocol}://{host}"
+        else:
+             config_url = f"{protocol}://{host}:{port}"
+
         # Device Info
         self._attr_device_info = {
             "identifiers": {(DOMAIN, coordinator.api._host)},
             "name": f"InvisaGig {coordinator.api._host}",
             "manufacturer": "InvisaGig Technologies",
-            "model": "IG62", # Could be dynamic if we wait for first update, but coordinator has data?
-                              # Actually coordinator update happens before setup usually? 
-                              # Let's hope so. 
+            "model": "IG62",
+            "configuration_url": config_url,
         }
         
         # Attempt to update device info from data if available
