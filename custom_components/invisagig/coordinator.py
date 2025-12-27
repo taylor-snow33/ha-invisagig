@@ -203,6 +203,29 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
         if should_refresh:
             _LOGGER.debug("Fetching tower data for %s", cache_key)
             tower_info = await self.api.async_get_tower_data(mcc, mnc, lac, cid)
+            
+            # FALLBACK: If specific cell not found, try Sector 1 of the eNodeB
+            # Many databases track the main sectors (1, 2, 3) but maybe not specific small cells (Active CID)
+            if not tower_info:
+                # Get eNodeB ID
+                enodeb_id = lte_cell.get("lteTid")
+                if not enodeb_id and cid:
+                    enodeb_id = cid // 256
+                
+                if enodeb_id:
+                     # Construct Sector 1 CID
+                     # OpenCelliD/LTE requires the full ECI (28-bit)
+                     # ECI = eNodeB * 256 + SectorID. 
+                     # Sector 1 is a safe bet for a macro site.
+                     fallback_cid = (enodeb_id * 256) + 1
+                     
+                     # Don't try if it's the same as original
+                     if fallback_cid != cid:
+                         _LOGGER.debug("Primary CID lookup failed. Trying fallback eNodeB Sector 1: %s", fallback_cid)
+                         tower_info = await self.api.async_get_tower_data(mcc, mnc, lac, fallback_cid)
+                         if tower_info:
+                             _LOGGER.info("Resolved tower location using fallback sector 1")
+
             if tower_info:
                 entry = {
                     "timestamp": datetime.now().timestamp(),
