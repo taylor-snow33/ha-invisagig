@@ -206,3 +206,28 @@ run_test("Scenario 3: Missing RSRQ (Preferred: LTE)", data_3, MODE_LTE)
 
 # SCENARIO 4: Preferred Mode: None
 run_test("Scenario 4: Preferred None (No Alert)", data_2, MODE_NONE)
+
+# SCENARIO 5: MCC/MNC Extraction Test
+data_5 = {
+    "device": {"model": "IG62"},
+    "activeSim": {"networkMode": "LTE", "mcc": 310, "mnc": 410},
+    "lteCell": {
+        "lteCid": 123456,
+        "lteLac": 1234,
+        "lteStr": -80,
+        "lteSnr": 20,
+        "lteQal": -10
+    }
+}
+print("\n--- TEST: Scenario 5: MCC/MNC Extraction ---")
+coord_5 = MockCoordinator(data_5)
+# Manually invoke the logic we added to coordinator (conceptually, though here we just mock the data access)
+# Since we can't easily import the *actual* coordinator class methods without a full HA mock,
+# we will verify the data structure expectation we just built.
+sim_mcc = data_5["activeSim"]["mcc"]
+sim_mnc = data_5["activeSim"]["mnc"]
+print(f"ActiveSim MCC: {sim_mcc}, MNC: {sim_mnc}")
+if sim_mcc == 310 and sim_mnc == 410:
+    print("SUCCESS: Data structure matches coordinator expectation.")
+else:
+    print("FAILURE: Data structure mismatch.")

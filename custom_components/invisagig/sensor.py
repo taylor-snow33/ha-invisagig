@@ -291,6 +291,30 @@ SENSOR_TYPES: tuple[InvisaGigSensorEntityDescription, ...] = (
         value_fn=lambda data: get_lte_info(data, "lteCid"),
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    InvisaGigSensorEntityDescription(
+        key="lte_lac",
+        name="LTE LAC/TAC",
+        value_fn=lambda data: get_lte_info(data, "lteLac"), # Mapped to LAC or TAC often
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    InvisaGigSensorEntityDescription(
+        key="lte_mcc",
+        name="LTE MCC",
+        value_fn=lambda data: get_lte_info(data, "mcc") or get_activesim_info(data, "mcc"),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    InvisaGigSensorEntityDescription(
+        key="lte_mnc",
+        name="LTE MNC",
+        value_fn=lambda data: get_lte_info(data, "mnc") or get_activesim_info(data, "mnc"),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    InvisaGigSensorEntityDescription(
+        key="lte_enodeb",
+        name="eNodeB ID",
+        value_fn=lambda data: (get_lte_info(data, "lteCid") // 256) if get_lte_info(data, "lteCid") else None,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 
     # Carrier Aggregation
     InvisaGigSensorEntityDescription(
