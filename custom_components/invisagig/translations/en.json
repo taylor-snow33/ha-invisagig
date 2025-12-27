@@ -25,12 +25,12 @@
         "step": {
             "init": {
                 "data": {
-                    "scan_interval": "Scan Interval (seconds)",
-                    "opencellid_token": "OpenCelliD Token (Optional)",
                     "include_raw_json": "Include Raw JSON Sensor",
-                    "mcc": "MCC Override (Optional - Verizon: 311, T-Mobile: 310, AT&T: 310)",
-                    "mnc": "MNC Override (Optional - Verizon: 480, T-Mobile: 260, AT&T: 410)",
-                    "preferred_mode": "Preferred Network Mode"
+                    "preferred_mode": "Preferred Network Mode",
+                    "mcc": "Override MCC (e.g. 311 for Verizon)",
+                    "mnc": "Override MNC (e.g. 480 for Verizon)",
+                    "tower_lat": "Tower Latitude (Manual Override)",
+                    "tower_lon": "Tower Longitude (Manual Override)"
                 }
             }
         }

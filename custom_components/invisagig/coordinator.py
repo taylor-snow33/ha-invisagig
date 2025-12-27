@@ -98,9 +98,17 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_handle_tower_lookup(self, data: dict):
         """Handle tower lookup logic."""
-        await self._async_load_cache()
+        # 0. CHECK FOR MANUAL TOWER COORDS
+        conf_lat = self.config_entry.options.get("tower_lat", 0.0)
+        conf_lon = self.config_entry.options.get("tower_lon", 0.0)
+        
+        if conf_lat != 0.0 or conf_lon != 0.0:
+            self.tower_data = {"lat": float(conf_lat), "lon": float(conf_lon)}
+            self.tower_lookup_status = "manual_override"
+            return
 
-        lte_cell = data.get("lteCell")
+        # 1. GATHER DATA
+        lte_cell = data.get("lteCell", {})
         if not lte_cell:
             self.tower_lookup_status = "no_signal"
             return

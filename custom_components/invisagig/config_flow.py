@@ -23,7 +23,8 @@ from .const import (
     CONF_PREFERRED_MODE,
     CONF_MCC,
     CONF_MNC,
-    CONF_MNC,
+    CONF_TOWER_LAT,
+    CONF_TOWER_LON,
     DEFAULT_NAME,
     DEFAULT_HOST,
     DEFAULT_PORT_HTTP,
@@ -161,6 +162,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                          CONF_MNC,
                          default=self.config_entry.options.get(CONF_MNC, 0)
                     ): int,
+                    vol.Optional(
+                        CONF_TOWER_LAT,
+                        default=self.config_entry.options.get(CONF_TOWER_LAT, 0.0)
+                    ): float,
+                     vol.Optional(
+                        CONF_TOWER_LON,
+                        default=self.config_entry.options.get(CONF_TOWER_LON, 0.0)
+                    ): float,
                     vol.Optional(
                         CONF_PREFERRED_MODE,
                         default=self.config_entry.options.get(CONF_PREFERRED_MODE, DEFAULT_PREFERRED_MODE),
