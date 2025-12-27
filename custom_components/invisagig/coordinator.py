@@ -114,13 +114,32 @@ class InvisaGigDataUpdateCoordinator(DataUpdateCoordinator):
         mcc = self.config_entry.options.get(CONF_MCC)
         mnc = self.config_entry.options.get(CONF_MNC)
 
+        # Try to find in data (Check sim first then cell)
+        if not mcc or not mnc:
+            sim = data.get("activeSim", {})
+            mcc = sim.get("mcc")
+            mnc = sim.get("mnc")
+        
+        if not mcc or not mnc:
+            # Check lteCell
+            mcc = lte_cell.get("mcc") or lte_cell.get("plmn_mcc")
+            mnc = lte_cell.get("mnc") or lte_cell.get("plmn_mnc")
+            
+            # Check for combined PLMN string
+            if not mcc and not mnc:
+                plmn = lte_cell.get("plmn")
+                if plmn:
+                    plmn = str(plmn)
+                    if len(plmn) >= 5:
+                        mcc = plmn[:3]
+                        mnc = plmn[3:]
+
         if not cid or not lac:
              self.tower_lookup_status = "missing_cid_lac"
              return
-
+            
         if not mcc or not mnc:
              self.tower_lookup_status = "missing_mcc_mnc"
-             # If telemetry had it, we'd use it here.
              return
 
         # Check Token

@@ -1,7 +1,11 @@
 # InvisaGig Integration for Home Assistant
 
+![Logo](InvisaGig-Icon.jpg)
+
+**Disclaimer:** This integration is a community project and is **NOT** affiliated with, endorsed by, or supported by InvisaGig, Wireless Haven, or any of their related companies. It is created by a user, for users, to extend the product's capabilities into the Home Assistant ecosystem.
+
 Custom integration for InvisaGig cellular modems (IG62, etc).
-Exposes telemetry field as sensors and optionally provides cellular tower location on the map.
+Exposes telemetry fields as sensors and optionally provides cellular tower location on the map.
 
 ## Features
 
