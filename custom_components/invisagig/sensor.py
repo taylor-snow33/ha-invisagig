@@ -312,7 +312,7 @@ SENSOR_TYPES: tuple[InvisaGigSensorEntityDescription, ...] = (
     InvisaGigSensorEntityDescription(
         key="lte_enodeb",
         name="eNodeB ID",
-        value_fn=lambda data: (get_lte_info(data, "lteCid") // 256) if get_lte_info(data, "lteCid") else None,
+        value_fn=lambda data: get_lte_info(data, "lteTid") or ((get_lte_info(data, "lteCid") // 256) if get_lte_info(data, "lteCid") else None),
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 
