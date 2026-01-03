@@ -46,15 +46,6 @@ Exposes telemetry fields as sensors for Home Assistant.
     - Detailed Cellular Info (MCC, MNC, LAC/TAC, CID, eNodeB)
 - **Auto-Discovery**: Automatically checks the default IP (192.168.225.1) during setup.
 
-## Troubleshooting
-
-### Integration Branding / Logo Missing
-If the icon does not appear in HACS or Home Assistant:
-1. In HACS, find the InvisaGig integration.
-2. Click the three dots -> **Redownload**.
-3. Clear your browser cache.
-4. Restart Home Assistant.
-
 ## License
 
 MIT
