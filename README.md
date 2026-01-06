@@ -1,6 +1,8 @@
 # InvisaGig Integration for Home Assistant
 
 ![Logo](icon.png)
+![Screenshot](screenshot 1.png)
+
 
 **Disclaimer:** This integration is a community project and is **NOT** affiliated with, endorsed by, or supported by InvisaGig, Wireless Haven, or any of their related companies. It is created by a user, for users, to extend the product's capabilities into the Home Assistant ecosystem.
 
