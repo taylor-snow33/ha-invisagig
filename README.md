@@ -1,6 +1,4 @@
 # InvisaGig Integration for Home Assistant
-
-![Logo](icon.png)
 <p align="center">
   <img src="icon.png" width="180" alt="InvisaGig logo">
 </p>
@@ -16,6 +14,9 @@ Exposes telemetry fields as sensors for Home Assistant.
 - **Telemetry Polling**: Updates every 60 seconds (hardware limit).
 - **Sensors**: Signal strength, Bandwidth, Data usage, Temperature, and more.
 - **Plug & Play**: Auto-discovery of model and settings.
+
+![Connection Health](connection_health.png)
+![Tower ID](tower_id.png)
 
 ## Installation
 
