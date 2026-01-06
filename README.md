@@ -3,7 +3,7 @@
   <img src="icon.png" width="180" alt="InvisaGig logo">
 </p>
 
-**Disclaimer:** This integration is a community project and is **NOT** affiliated with, endorsed by, or supported by InvisaGig, Wireless Haven, or any of their related companies. It is created by a user, for users, to extend the product's capabilities into the Home Assistant ecosystem. This was built using the new [InvisaGig Telemetry System]([https://example.com](https://invisagig.com/collecting-and-viewing-your-invisagig-telemetry-data-for-free/?fbclid=IwY2xjawPKMd5leHRuA2FlbQIxMABicmlkETFNalUyOXl0akE0N1R1TnU3c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHtbz2i7UpJ3ijzXcCyEDiMg64D7utiIHTRPOLFXsR1rYUpgP8zlWKTfgfgtS_aem_phdIpVlEmUmUNcnmPLyvLg))
+**Disclaimer:** This integration is a community project and is **NOT** affiliated with, endorsed by, or supported by InvisaGig, Wireless Haven, or any of their related companies. It is created by a user, for users, to extend the product's capabilities into the Home Assistant ecosystem. This was built using the new [InvisaGig Telemetry System](https://invisagig.com/collecting-and-viewing-your-invisagig-telemetry-data-for-free/)
 
 
 ## Features
