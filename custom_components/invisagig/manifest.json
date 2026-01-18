@@ -7,7 +7,7 @@
   "config_flow": true,
   "documentation": "https://github.com/taylor-snow33/ha-invisagig",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/taylorsnow/ha-invisagig/issues",
+  "issue_tracker": "https://github.com/taylor-snow33/ha-invisagig/issues",
   "dependencies": [],
   "requirements": [],
   "version": "1.0.8"
